@@ -2,23 +2,76 @@
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "ScriptLoaderGUI"
 screenGui.ResetOnSpawn = false
-screenGui.Parent = game.CoreGui -- Use CoreGui for a local script
+screenGui.Parent = game.CoreGui
 
--- Create a Frame to hold buttons
+-- Create a Frame to hold buttons and title
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 200, 0, 120)
-frame.Position = UDim2.new(0.5, -100, 0.5, -60)
+frame.Size = UDim2.new(0, 200, 0, 160)
+frame.Position = UDim2.new(0.5, -100, 0.5, -80)
 frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 frame.Parent = screenGui
 frame.BorderSizePixel = 0
 frame.BackgroundTransparency = 0.2
-frame.ClipsDescendants = true
 frame.AnchorPoint = Vector2.new(0.5, 0.5)
+
+-- Make frame draggable (desktop + mobile)
+local UserInputService = game:GetService("UserInputService")
+
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+                              startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or
+       input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+frame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or
+       input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
+
+-- Title Label
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, 0, 0, 40)
+titleLabel.Position = UDim2.new(0, 0, 0, 0)
+titleLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+titleLabel.BorderSizePixel = 0
+titleLabel.Text = "Arsenal"
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextSize = 24
+titleLabel.Parent = frame
 
 -- Button style helper function
 local function createButton(text, position)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 180, 0, 45)
+    btn.Size = UDim2.new(0, 180, 0, 40)
     btn.Position = position
     btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
     btn.BorderSizePixel = 0
@@ -31,42 +84,57 @@ local function createButton(text, position)
     return btn
 end
 
--- Create Buttons
-local espButton = createButton("Load ESP", UDim2.new(0, 10, 0, 10))
-local aimbotButton = createButton("Load Aimbot", UDim2.new(0, 10, 0, 65))
+-- Enable/Disable functions
+local function disableButton(button)
+    button.AutoButtonColor = false
+    button.Active = false
+    button.Selectable = false
+    button.TextColor3 = Color3.fromRGB(150, 150, 150)
+    button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+end
 
--- Load ESP script function
-local function loadESP()
+local function enableButton(button)
+    button.AutoButtonColor = true
+    button.Active = true
+    button.Selectable = true
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+end
+
+-- Create Buttons (positions adjusted for title)
+local espButton = createButton("Load ESP", UDim2.new(0, 10, 0, 50))
+local aimbotButton = createButton("Load Aimbot", UDim2.new(0, 10, 0, 100))
+
+-- Load ESP function
+espButton.MouseButton1Click:Connect(function()
+    disableButton(espButton)
+    espButton.Text = "Loading ESP..."
     local success, err = pcall(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/chachahax/ESP/refs/heads/main/ESPDIDDY"))()
     end)
     if success then
         print("ESP Loaded")
         espButton.Text = "ESP Loaded ✅"
-        espButton.BackgroundColor3 = Color3.fromRGB(30, 150, 30)
     else
         warn("Failed to load ESP:", err)
         espButton.Text = "ESP Failed ❌"
-        espButton.BackgroundColor3 = Color3.fromRGB(150, 30, 30)
+        enableButton(espButton)
     end
-end
+end)
 
--- Load Aimbot script function
-local function loadAimbot()
+-- Load Aimbot function
+aimbotButton.MouseButton1Click:Connect(function()
+    disableButton(aimbotButton)
+    aimbotButton.Text = "Loading Aimbot..."
     local success, err = pcall(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/chachahax/Aimbot/refs/heads/main/aimbot"))()
     end)
     if success then
         print("Aimbot Loaded")
         aimbotButton.Text = "Aimbot Loaded ✅"
-        aimbotButton.BackgroundColor3 = Color3.fromRGB(30, 150, 30)
     else
         warn("Failed to load Aimbot:", err)
         aimbotButton.Text = "Aimbot Failed ❌"
-        aimbotButton.BackgroundColor3 = Color3.fromRGB(150, 30, 30)
+        enableButton(aimbotButton)
     end
-end
-
--- Connect buttons to their functions
-espButton.MouseButton1Click:Connect(loadESP)
-aimbotButton.MouseButton1Click:Connect(loadAimbot)
+end)
