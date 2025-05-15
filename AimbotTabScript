@@ -1,4 +1,72 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/chachahax/ESP/refs/heads/main/ESPDIDDY"))()
-print("ESP Loaded")
-loadstring(game:HttpGet("https://raw.githubusercontent.com/chachahax/Aimbot/refs/heads/main/aimbot"))()
-print("Aimbot Loaded")
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ScriptLoaderGUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = game.CoreGui -- Use CoreGui for a local script
+
+-- Create a Frame to hold buttons
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 120)
+frame.Position = UDim2.new(0.5, -100, 0.5, -60)
+frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+frame.Parent = screenGui
+frame.BorderSizePixel = 0
+frame.BackgroundTransparency = 0.2
+frame.ClipsDescendants = true
+frame.AnchorPoint = Vector2.new(0.5, 0.5)
+
+-- Button style helper function
+local function createButton(text, position)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 180, 0, 45)
+    btn.Position = position
+    btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    btn.BorderSizePixel = 0
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Text = text
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 18
+    btn.AutoButtonColor = true
+    btn.Parent = frame
+    return btn
+end
+
+-- Create Buttons
+local espButton = createButton("Load ESP", UDim2.new(0, 10, 0, 10))
+local aimbotButton = createButton("Load Aimbot", UDim2.new(0, 10, 0, 65))
+
+-- Load ESP script function
+local function loadESP()
+    local success, err = pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/chachahax/ESP/refs/heads/main/ESPDIDDY"))()
+    end)
+    if success then
+        print("ESP Loaded")
+        espButton.Text = "ESP Loaded ✅"
+        espButton.BackgroundColor3 = Color3.fromRGB(30, 150, 30)
+    else
+        warn("Failed to load ESP:", err)
+        espButton.Text = "ESP Failed ❌"
+        espButton.BackgroundColor3 = Color3.fromRGB(150, 30, 30)
+    end
+end
+
+-- Load Aimbot script function
+local function loadAimbot()
+    local success, err = pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/chachahax/Aimbot/refs/heads/main/aimbot"))()
+    end)
+    if success then
+        print("Aimbot Loaded")
+        aimbotButton.Text = "Aimbot Loaded ✅"
+        aimbotButton.BackgroundColor3 = Color3.fromRGB(30, 150, 30)
+    else
+        warn("Failed to load Aimbot:", err)
+        aimbotButton.Text = "Aimbot Failed ❌"
+        aimbotButton.BackgroundColor3 = Color3.fromRGB(150, 30, 30)
+    end
+end
+
+-- Connect buttons to their functions
+espButton.MouseButton1Click:Connect(loadESP)
+aimbotButton.MouseButton1Click:Connect(loadAimbot)
